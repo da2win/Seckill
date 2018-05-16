@@ -4,15 +4,19 @@ import com.seckill.domain.MiaoshaOrder;
 import com.seckill.domain.MiaoshaUser;
 import com.seckill.domain.OrderInfo;
 import com.seckill.result.CodeMsg;
+import com.seckill.result.Result;
 import com.seckill.service.GoodsService;
 import com.seckill.service.MiaoshaService;
 import com.seckill.service.OrderService;
 import com.seckill.vo.GoodsVo;
+import com.sun.org.apache.xpath.internal.operations.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Darwin
@@ -31,30 +35,27 @@ public class MiaoshaController {
     @Autowired
     private MiaoshaService miaoshaService;
 
-    @RequestMapping("/do_miaosha")
-    public String list(Model model, MiaoshaUser user,
-                       @RequestParam("goodsId") long goodsId) {
+    @RequestMapping(value = "/do_miaosha", method = RequestMethod.POST)
+    @ResponseBody
+    public Result<OrderInfo> list(MiaoshaUser user,
+                                  @RequestParam("goodsId") long goodsId) {
         if (user == null) {
-            return "login";
+            return Result.error(CodeMsg.SESSION_ERROR);
         }
         GoodsVo goodsVo = goodsService.getGoodsVoById(goodsId);
         Integer stock = goodsVo.getStockCount();
         if (stock <= 0) {
-            model.addAttribute("errmsg", CodeMsg.MIAOSHA_OVER);
-            return "miaosha_fail";
+            return Result.error(CodeMsg.MIAOSHA_OVER);
         }
 
         // Judge whether had got sk-goods.
         MiaoshaOrder order = orderService.getMiaoshaOrderByUserIdGoodsId(user.getId(), goodsId);
         if (order != null) {
-            model.addAttribute("errmsg", CodeMsg.REPEAT_MIAOSHA);
-            return "miaosha_fail";
+            return Result.error(CodeMsg.REPEAT_MIAOSHA);
         }
         // decrease the stock count. order down
         OrderInfo orderInfo = miaoshaService.miaosha(user, goodsVo);
 
-        model.addAttribute("orderInfo", orderInfo);
-        model.addAttribute("goods", goodsVo);
-        return "order_detail";
+        return Result.success(orderInfo);
     }
 }

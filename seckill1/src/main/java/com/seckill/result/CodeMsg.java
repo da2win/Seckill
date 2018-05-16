@@ -13,6 +13,7 @@ public class CodeMsg {
     public static CodeMsg BIND_ERROR = new CodeMsg(500101, "Argument check exception：%s");
 
     // 登录模块 5002XX
+    public static CodeMsg SESSION_ERROR = new CodeMsg(500210, "Session不存在或者已经失效");
     public static CodeMsg PASSWORD_EMPTY = new CodeMsg(500211, "Password can not be empty");
     public static CodeMsg MOBILE_EMPTY = new CodeMsg(500212, "PhoneNO can not be empty");
     public static CodeMsg MOBILE_ERROR = new CodeMsg(500213, "Mobile phone number format error");

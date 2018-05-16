@@ -3,7 +3,9 @@ package com.seckill.controller;
 import com.seckill.domain.MiaoshaUser;
 import com.seckill.redis.GoodsKey;
 import com.seckill.redis.RedisService;
+import com.seckill.result.Result;
 import com.seckill.service.GoodsService;
+import com.seckill.vo.GoodsDetailVo;
 import com.seckill.vo.GoodsVo;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -67,9 +69,37 @@ public class GoodsController {
         return html;
     }
 
-    @RequestMapping("/to_detail/{goodsId}")
+    @RequestMapping("/detail/{goodsId}")
     @ResponseBody
-    public String toDetail(HttpServletRequest request, HttpServletResponse response, Model model,
+    public Result<GoodsDetailVo> toDetail(MiaoshaUser user, @PathVariable("goodsId")long goodsId) {
+        // Get cache.
+        GoodsVo goodsVo = goodsService.getGoodsVoById(goodsId);
+        long startAt = goodsVo.getStartDate().getTime();
+        long endAt = goodsVo.getEndDate().getTime();
+
+        long now = System.currentTimeMillis();
+        int remainSecs = 0;
+        int miaoshaStatus = 0;
+        if (now < startAt) { // The seckill has not begun.
+            miaoshaStatus = 0;
+            remainSecs = (int) ((startAt - now) / 1000);
+        } else if (now > endAt) { // The seckill had finished.
+            miaoshaStatus = 2;
+            remainSecs = -1;
+        } else { // In progress
+            miaoshaStatus = 1;
+        }
+        GoodsDetailVo vo = new GoodsDetailVo();
+        vo.setGoodsVo(goodsVo);
+        vo.setUser(user);
+        vo.setMiaoshaStatus(miaoshaStatus);
+        vo.setRemainSecs(remainSecs);
+        return Result.success(vo);
+    }
+
+    @RequestMapping(value = "/to_detail2/{goodsId}", produces = "text/html")
+    @ResponseBody
+    public String toDetail2(HttpServletRequest request, HttpServletResponse response, Model model,
                            MiaoshaUser user, @PathVariable("goodsId")long goodsId) {
         model.addAttribute("user", user);
         // Get cache.
