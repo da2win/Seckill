@@ -5,6 +5,7 @@ import com.seckill.domain.MiaoshaUser;
 import com.seckill.exception.GlobalException;
 import com.seckill.redis.RedisService;
 import com.seckill.redis.SeckillUserKey;
+import com.seckill.redis.UserKey;
 import com.seckill.result.CodeMsg;
 import com.seckill.util.MD5Util;
 import com.seckill.util.UUIDUtil;
@@ -30,10 +31,36 @@ public class MiaoshaUserService {
     @Autowired
     private RedisService redisService;
 
-
-
     public MiaoshaUser getById(Long id) {
-        return miaoshaUserDao.getById(id);
+        // Get cache.
+        MiaoshaUser user = redisService.get(SeckillUserKey.getById, "" + id, MiaoshaUser.class);
+        if (user != null) {
+            return user;
+        }
+        // Get database.
+        user = miaoshaUserDao.getById(id);
+        if (user != null) {
+            redisService.set(SeckillUserKey.getById, "" + id, user);
+        }
+        return user;
+    }
+
+    public boolean updatePassword(String token, long id, String passwordNew) {
+        // Get user
+        MiaoshaUser user = getById(id);
+        if (user == null) {
+            throw new GlobalException(CodeMsg.MOBILE_NOT_EXIST);
+        }
+        // Update db.
+        MiaoshaUser tobeUpdate = new MiaoshaUser();
+        tobeUpdate.setId(id);
+        tobeUpdate.setPassword(MD5Util.formPassToDBPass(passwordNew, user.getSalt()));
+        miaoshaUserDao.update(tobeUpdate);
+        // handle cache.
+        redisService.del(SeckillUserKey.getById, "" + id);
+        user.setPassword(tobeUpdate.getPassword());
+        redisService.set(SeckillUserKey.token, token, user);
+        return true;
     }
 
     public String login(HttpServletResponse response, LoginVo loginVo) {

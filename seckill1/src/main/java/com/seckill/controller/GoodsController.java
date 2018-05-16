@@ -1,8 +1,11 @@
 package com.seckill.controller;
 
 import com.seckill.domain.MiaoshaUser;
+import com.seckill.redis.GoodsKey;
+import com.seckill.redis.RedisService;
 import com.seckill.service.GoodsService;
 import com.seckill.vo.GoodsVo;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +13,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.adapter.DefaultServerWebExchange;
+import org.thymeleaf.context.IContext;
+import org.thymeleaf.context.WebContext;
+import org.thymeleaf.spring5.context.webflux.SpringWebFluxContext;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
 
@@ -24,21 +37,46 @@ public class GoodsController {
 
     private static Logger logger = LoggerFactory.getLogger(LoginController.class);
 
+
+    @Autowired
+    private RedisService redisService;
     @Autowired
     private GoodsService goodsService;
+    @Autowired
+    private ThymeleafViewResolver thymeleafViewResolver;
 
-    @RequestMapping("/to_list")
-    public String toList(Model model, MiaoshaUser user) {
+    @RequestMapping(value = "/to_list", produces = "text/html")
+    @ResponseBody
+    public String toList(HttpServletRequest request, HttpServletResponse response,
+                         Model model, MiaoshaUser user) {
         model.addAttribute("user", user);
         // query list of goods.
+        // Get cache.
+        String html = redisService.get(GoodsKey.getGoodsList, "", String.class);
+        if (!StringUtils.isEmpty(html)) {
+            return html;
+        }
         List<GoodsVo> goodsList = goodsService.listGoodsVo();
         model.addAttribute("goodsList", goodsList);
-        return "goods_list";
+        // Manual rendering
+        WebContext context = new WebContext(request, response, request.getServletContext(), request.getLocale(), model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goods_list", context);
+        if (StringUtils.isNotEmpty(html)) {
+            redisService.set(GoodsKey.getGoodsList, "", html);
+        }
+        return html;
     }
 
     @RequestMapping("/to_detail/{goodsId}")
-    public String toDetail(Model model, MiaoshaUser user, @PathVariable("goodsId")long goodsId) {
+    @ResponseBody
+    public String toDetail(HttpServletRequest request, HttpServletResponse response, Model model,
+                           MiaoshaUser user, @PathVariable("goodsId")long goodsId) {
         model.addAttribute("user", user);
+        // Get cache.
+        String html = redisService.get(GoodsKey.getGoodsDetail, "" + goodsId, String.class);
+        if (!StringUtils.isEmpty(html)) {
+            return html;
+        }
         GoodsVo goodsVo = goodsService.getGoodsVoById(goodsId);
         model.addAttribute("goods", goodsVo);
 
@@ -60,6 +98,12 @@ public class GoodsController {
         model.addAttribute("remainSeconds", remainSecs);
         model.addAttribute("miaoshaStatus", miaoshaStatus);
 
-        return "goods_detail";
+        // Manual rendering
+        WebContext context = new WebContext(request, response, request.getServletContext(), request.getLocale(), model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goods_detail", context);
+        if (StringUtils.isNotEmpty(html)) {
+            redisService.set(GoodsKey.getGoodsDetail, "" + goodsId, html);
+        }
+        return html;
     }
 }

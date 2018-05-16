@@ -132,6 +132,19 @@ public class RedisService {
         }
     }
 
+    public boolean del(KeyPrefix prefix, String key) {
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            // Generate the true key.
+            String realKey = prefix.getPrefix() + key;
+            Long res = jedis.del(realKey);
+            return res > 0;
+        } finally {
+            returnToPool(jedis);
+        }
+    }
+
     private <T> String beanToString(T value) {
         if (value == null) {
             return null;
