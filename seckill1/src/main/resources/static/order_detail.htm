@@ -32,7 +32,7 @@
         </tr>
         <tr>
             <td>订单价格</td>
-            <td colspan="2" id="goods-price"></td>
+            <td colspan="2" id="order-price"></td>
         </tr>
         <tr>
             <td>下单时间</td>
@@ -56,4 +56,41 @@
     </table>
 </div>
 </body>
+<script>
+    $(function() {
+        getOrderDetail();
+    })
+    function getOrderDetail() {
+        var orderId = g_getQueryString("orderId");
+        $.ajax({
+            url: "/order/detail",
+            type: "get",
+            data: {
+                orderId: orderId
+            },
+            success: function(data) {
+                if (data.code == 0) {
+                    render(data.data);
+                } else {
+                    layer.msg(data.msg);
+                }
+            },
+            error: function() {
+                layer.msg("客户端请求错误");
+            }
+        })
+    }
+
+    function render(detail) {
+        var goods = detail.goodsVo;
+        var order = detail.order;
+        $("#goods-name").text(goods.goodsName);
+        $("#goods-id").text(goods.goodsId);
+        $("#goods-img").attr("src", goods.goodsImg);
+        $("#order-price").text(order.goodsPrice);
+        $("#create-date").text(new Date(order.createDate).format("yyyy-MM-dd hh:mm:ss"));
+        var statusList = ["未支付", "代发货", "已发货", "已收款", "已退款", "已完成"];
+        $("#order-status").text(statusList[order.status]);
+    }
+</script>
 </html>

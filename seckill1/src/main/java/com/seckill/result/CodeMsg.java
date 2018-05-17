@@ -20,6 +20,9 @@ public class CodeMsg {
     public static CodeMsg MOBILE_NOT_EXIST = new CodeMsg(500214, "Mobile is not exists");
     public static CodeMsg PASSWORD_INCORRECT = new CodeMsg(500215, "Password is incorrect");
 
+    // 订单模块 5004XX
+    public static CodeMsg ORDER_NOT_EXIST = new CodeMsg(500400, "The order is not exists");
+
     // 秒杀模块 5005XX
     public static CodeMsg MIAOSHA_OVER = new CodeMsg(500500, "The goods have been sold out");
     public static CodeMsg REPEAT_MIAOSHA = new CodeMsg(500501, "Don't repeat the SECKILL");
