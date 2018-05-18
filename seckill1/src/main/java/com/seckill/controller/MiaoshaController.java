@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Darwin
@@ -44,6 +46,8 @@ public class MiaoshaController implements InitializingBean {
     @Autowired
     private MQSender sender;
 
+    private Map<Long, Boolean> localOverMap = new HashMap();
+
     @RequestMapping(value = "/do_miaosha", method = RequestMethod.POST)
     @ResponseBody
     public Result<Integer> list(MiaoshaUser user,
@@ -51,11 +55,17 @@ public class MiaoshaController implements InitializingBean {
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
         }
-
-        Long stock = redisService.decr(GoodsKey.getMiaoshaGoodsStock, "" + goodsId);
-        if (stock < 0) {
+        // 内存标记, 减少redis访问量
+        Boolean over = localOverMap.get(goodsId);
+        if (over) {
             return Result.error(CodeMsg.MIAOSHA_OVER);
         }
+        Long stock = redisService.decr(GoodsKey.getMiaoshaGoodsStock, "" + goodsId);
+        if (stock < 0) {
+            localOverMap.put(goodsId, true);
+            return Result.error(CodeMsg.MIAOSHA_OVER);
+        }
+
 
         // 入队
         MiaoshaMessage mm = new MiaoshaMessage();
@@ -112,6 +122,7 @@ public class MiaoshaController implements InitializingBean {
         }
         for (GoodsVo goods : goodsList) {
             redisService.set(GoodsKey.getMiaoshaGoodsStock, "" + goods.getId(), goods.getStockCount());
+            localOverMap.put(goods.getId(), false);
         }
 
     }
