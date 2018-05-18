@@ -35,33 +35,33 @@ public class DemoController {
         return "Hello World!";
     }
 
-    @RequestMapping("/mq")
-    @ResponseBody
-    public Result<String> mq() {
-        sender.send("hello, I'm your daddy!");
-        return Result.success("hello da2win");
-    }
-
-    @RequestMapping("/mq/topic")
-    @ResponseBody
-    public Result<String> topic() {
-        sender.sendTopic("hello, I'm your daddy!");
-        return Result.success("hello da2win");
-    }
-
-    @RequestMapping("/mq/fanout")
-    @ResponseBody
-    public Result<String> fanout() {
-        sender.sendFanout("hello, I'm your daddy!");
-        return Result.success("hello da2win");
-    }
-
-    @RequestMapping("/mq/header")
-    @ResponseBody
-    public Result<String> header() {
-        sender.sendHeader("hello, I'm your daddy!");
-        return Result.success("hello da2win");
-    }
+    //@RequestMapping("/mq")
+    //@ResponseBody
+    //public Result<String> mq() {
+    //    sender.send("hello, I'm your daddy!");
+    //    return Result.success("hello da2win");
+    //}
+    //
+    //@RequestMapping("/mq/topic")
+    //@ResponseBody
+    //public Result<String> topic() {
+    //    sender.sendTopic("hello, I'm your daddy!");
+    //    return Result.success("hello da2win");
+    //}
+    //
+    //@RequestMapping("/mq/fanout")
+    //@ResponseBody
+    //public Result<String> fanout() {
+    //    sender.sendFanout("hello, I'm your daddy!");
+    //    return Result.success("hello da2win");
+    //}
+    //
+    //@RequestMapping("/mq/header")
+    //@ResponseBody
+    //public Result<String> header() {
+    //    sender.sendHeader("hello, I'm your daddy!");
+    //    return Result.success("hello da2win");
+    //}
 
     @RequestMapping("/hello")
     @ResponseBody

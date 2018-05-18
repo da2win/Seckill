@@ -1,6 +1,7 @@
 package com.seckill.rabbitmq;
 
 import com.seckill.redis.RedisService;
+import com.seckill.result.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -22,32 +23,38 @@ public class MQSender {
     @Autowired
     private AmqpTemplate amqpTemplate;
 
-    public void send(Object message) {
-        String msg = RedisService.beanToString(message);
-        log.info("send message: " + msg);
-        amqpTemplate.convertAndSend(MQConfig.QUEUE, message);
-    }
+    //public void send(Object message) {
+    //    String msg = RedisService.beanToString(message);
+    //    log.info("send message: " + msg);
+    //    amqpTemplate.convertAndSend(MQConfig.QUEUE, message);
+    //}
+    //
+    //public void sendTopic(Object message) {
+    //    String msg = RedisService.beanToString(message);
+    //    log.info("send message: " + msg);
+    //    amqpTemplate.convertAndSend(MQConfig.TOPIC_EXCHANGE, "topic.key1", msg + "1");
+    //    amqpTemplate.convertAndSend(MQConfig.TOPIC_EXCHANGE, "topic.key2", msg + "2");
+    //}
+    //
+    //public void sendFanout(Object message) {
+    //    String msg = RedisService.beanToString(message);
+    //    log.info("send fanout message: " + msg);
+    //    amqpTemplate.convertAndSend(MQConfig.FANOUT_EXCHANGE, "", msg);
+    //}
+    //
+    //public void sendHeader(Object message) {
+    //    String msg = RedisService.beanToString(message);
+    //    log.info("send fanout message: " + msg);
+    //    MessageProperties properties = new MessageProperties();
+    //    properties.setHeader("header1", "value1");
+    //    properties.setHeader("header2", "value2");
+    //    Message obj = new Message(msg.getBytes(), properties);
+    //    amqpTemplate.convertAndSend(MQConfig.HEADERS_EXCHANGE, "", obj);
+    //}
 
-    public void sendTopic(Object message) {
-        String msg = RedisService.beanToString(message);
-        log.info("send message: " + msg);
-        amqpTemplate.convertAndSend(MQConfig.TOPIC_EXCHANGE, "topic.key1", msg + "1");
-        amqpTemplate.convertAndSend(MQConfig.TOPIC_EXCHANGE, "topic.key2", msg + "2");
-    }
-
-    public void sendFanout(Object message) {
-        String msg = RedisService.beanToString(message);
-        log.info("send fanout message: " + msg);
-        amqpTemplate.convertAndSend(MQConfig.FANOUT_EXCHANGE, "", msg);
-    }
-
-    public void sendHeader(Object message) {
-        String msg = RedisService.beanToString(message);
-        log.info("send fanout message: " + msg);
-        MessageProperties properties = new MessageProperties();
-        properties.setHeader("header1", "value1");
-        properties.setHeader("header2", "value2");
-        Message obj = new Message(msg.getBytes(), properties);
-        amqpTemplate.convertAndSend(MQConfig.HEADERS_EXCHANGE, "", obj);
+    public void sendMiaoshaMessage(MiaoshaMessage mm) {
+        String msg = RedisService.beanToString(mm);
+        log.info("send message:"+msg);
+        amqpTemplate.convertAndSend(MQConfig.QUEUE, msg);
     }
 }

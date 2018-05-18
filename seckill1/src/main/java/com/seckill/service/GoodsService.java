@@ -29,9 +29,10 @@ public class GoodsService {
     }
 
     @Transactional
-    public void reduceStock(GoodsVo goodsVo) {
+    public boolean reduceStock(GoodsVo goodsVo) {
         MiaoshaGoods g = new MiaoshaGoods();
         g.setGoodsId(goodsVo.getId());
-        goodsDao.reduceStock(g);
+        int res = goodsDao.reduceStock(g);
+        return res > 0;
     }
 }
