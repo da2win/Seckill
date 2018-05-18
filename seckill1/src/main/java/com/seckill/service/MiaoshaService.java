@@ -5,6 +5,8 @@ import com.seckill.domain.MiaoshaUser;
 import com.seckill.domain.OrderInfo;
 import com.seckill.redis.MiaoshaKey;
 import com.seckill.redis.RedisService;
+import com.seckill.util.MD5Util;
+import com.seckill.util.UUIDUtil;
 import com.seckill.vo.GoodsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,5 +57,19 @@ public class MiaoshaService {
 
     private void setGoodsOver(Long goodsId) {
         redisService.set(MiaoshaKey.isGoodsOver, "" + goodsId, true);
+    }
+
+    public boolean checkPath(MiaoshaUser user, long goodsId, String path) {
+        if (user == null || path == null) {
+            return false;
+        }
+        String pathOld = redisService.get(MiaoshaKey.getMiaoshaPath, user.getId() + "_" + goodsId, String.class);
+        return path.equals(pathOld);
+    }
+
+    public String createMiaoshaPath(MiaoshaUser user, long goodsId) {
+        String str = MD5Util.md5(UUIDUtil.uuid() + "123456");
+        redisService.set(MiaoshaKey.getMiaoshaPath, user.getId() + "_" + goodsId, str);
+        return str;
     }
 }

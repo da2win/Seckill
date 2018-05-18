@@ -44,7 +44,7 @@
             <td>
                 <form id="miaoshaForm" method="post" action="/miaosha/do_miaosha">
                     <!--<button class="btn btn-primary btn-block" type="submit" id="buyButton">立即秒杀</button>-->
-                    <button class="btn btn-primary btn-block" type="button" id="buyButton" onclick="doMiaosha()">立即秒杀</button>
+                    <button class="btn btn-primary btn-block" type="button" id="buyButton" onclick="getMiaoshaPath()">立即秒杀</button>
                     <input type="hidden" id="goods-id" name="goodsId" value="goodsId">
                 </form>
             </td>
@@ -68,10 +68,33 @@
     $(function() {
         getDetail();
     });
-    
-    function doMiaosha() {
+
+    function getMiaoshaPath() {
+        var goodsId = $("#goods-id").val();
+        g_showLoading();
         $.ajax({
-            url: "/miaosha/do_miaosha",
+            url: "/miaosha/path",
+            type: "get",
+            data: {
+                goodsId: goodsId
+            },
+            success: function(data) {
+                if (data.code == 0) {
+                    var path = data.data;
+                    doMiaosha(path);
+                } else {
+                    layer.msg(data.msg);
+                }
+            },
+            error: function() {
+                layer.msg("客户端请求错误");
+            }
+        });
+    }
+
+    function doMiaosha(path) {
+        $.ajax({
+            url: "/miaosha/" + path + "/do_miaosha",
             type: "post",
             data: {
                 goodsId: $("#goods-id").val()
@@ -105,7 +128,7 @@
                     } else if (result == 0) { // 继续轮询
                         setTimeout(function() {
                             getMiaoshaResult(goodsId);
-                        }, 50);
+                        }, 200);
                     } else {
                         layer.confirm("Congratulation, 秒杀成功! 查看订单?", {btn: ["确定", "取消"]},
                         function() {

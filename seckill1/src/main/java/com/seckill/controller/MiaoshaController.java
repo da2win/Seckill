@@ -4,20 +4,20 @@ import com.seckill.domain.MiaoshaUser;
 import com.seckill.rabbitmq.MQSender;
 import com.seckill.rabbitmq.MiaoshaMessage;
 import com.seckill.redis.GoodsKey;
+import com.seckill.redis.MiaoshaKey;
 import com.seckill.redis.RedisService;
 import com.seckill.result.CodeMsg;
 import com.seckill.result.Result;
 import com.seckill.service.GoodsService;
 import com.seckill.service.MiaoshaService;
 import com.seckill.service.OrderService;
+import com.seckill.util.MD5Util;
+import com.seckill.util.UUIDUtil;
 import com.seckill.vo.GoodsVo;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,12 +48,18 @@ public class MiaoshaController implements InitializingBean {
 
     private Map<Long, Boolean> localOverMap = new HashMap();
 
-    @RequestMapping(value = "/do_miaosha", method = RequestMethod.POST)
+    @RequestMapping(value = "/{path}/do_miaosha", method = RequestMethod.POST)
     @ResponseBody
     public Result<Integer> list(MiaoshaUser user,
-                                @RequestParam("goodsId") long goodsId) {
+                                @RequestParam("goodsId") long goodsId,
+                                @PathVariable("path") String path) {
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        // 验证path
+        boolean check = miaoshaService.checkPath(user, goodsId, path);
+        if (!check) {
+            return Result.error(CodeMsg.REQUEST_ILLEGAL);
         }
         // 内存标记, 减少redis访问量
         Boolean over = localOverMap.get(goodsId);
@@ -125,5 +131,16 @@ public class MiaoshaController implements InitializingBean {
             localOverMap.put(goods.getId(), false);
         }
 
+    }
+
+    @RequestMapping(value = "/path", method = RequestMethod.GET)
+    @ResponseBody
+    public Result<String> path(MiaoshaUser user,
+                                @RequestParam("goodsId") long goodsId) {
+        if (user == null) {
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        String path = miaoshaService.createMiaoshaPath(user, goodsId);
+        return Result.success(path);
     }
 }
