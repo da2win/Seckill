@@ -1,8 +1,10 @@
 package com.seckill.controller;
 
+import com.seckill.access.AccessLimit;
 import com.seckill.domain.MiaoshaUser;
 import com.seckill.rabbitmq.MQSender;
 import com.seckill.rabbitmq.MiaoshaMessage;
+import com.seckill.redis.AccessKey;
 import com.seckill.redis.GoodsKey;
 import com.seckill.redis.MiaoshaKey;
 import com.seckill.redis.RedisService;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -61,6 +64,7 @@ public class MiaoshaController implements InitializingBean {
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
         }
+
         // 验证path
         boolean check = miaoshaService.checkPath(user, goodsId, path);
         if (!check) {
@@ -138,15 +142,15 @@ public class MiaoshaController implements InitializingBean {
 
     }
 
+    @AccessLimit(seconds=5, maxCount=5, needLogin=true)
     @RequestMapping(value = "/path", method = RequestMethod.GET)
     @ResponseBody
-    public Result<String> path(MiaoshaUser user,
-                                @RequestParam("goodsId") long goodsId,
+    public Result<String> path(MiaoshaUser user, HttpServletRequest request,
+                               @RequestParam("goodsId") long goodsId,
                                @RequestParam("verifyCode") int verifyCode) {
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
         }
-        //
         boolean check = miaoshaService.checkVerifyCode(user, goodsId, verifyCode);
         if (!check) {
             return Result.error(CodeMsg.MIAOSHA_FAIL);

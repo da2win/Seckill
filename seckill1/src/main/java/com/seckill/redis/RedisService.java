@@ -77,7 +77,7 @@ public class RedisService {
      * @param <T>
      * @return
      */
-    public <T> Long incr(KeyPrefix prefix, String key, T value) {
+    public <T> Long incr(KeyPrefix prefix, String key) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();

@@ -11,7 +11,8 @@ public class CodeMsg {
     public static CodeMsg SUCCESS = new CodeMsg(0, "success");
     public static CodeMsg SERVER_ERROR = new CodeMsg(500100, "server error");
     public static CodeMsg BIND_ERROR = new CodeMsg(500101, "Argument check exception：%s");
-    public static CodeMsg REQUEST_ILLEGAL = new CodeMsg(500102, "请求非法");
+    public static CodeMsg REQUEST_FREQUENT = new CodeMsg(500102, "Too frequent access");
+    public static CodeMsg REQUEST_ILLEGAL = new CodeMsg(500103, "请求非法");
 
     // 登录模块 5002XX
     public static CodeMsg SESSION_ERROR = new CodeMsg(500210, "Session不存在或者已经失效");
