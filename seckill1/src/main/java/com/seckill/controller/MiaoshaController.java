@@ -19,7 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,9 +141,15 @@ public class MiaoshaController implements InitializingBean {
     @RequestMapping(value = "/path", method = RequestMethod.GET)
     @ResponseBody
     public Result<String> path(MiaoshaUser user,
-                                @RequestParam("goodsId") long goodsId) {
+                                @RequestParam("goodsId") long goodsId,
+                               @RequestParam("verifyCode") int verifyCode) {
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        //
+        boolean check = miaoshaService.checkVerifyCode(user, goodsId, verifyCode);
+        if (!check) {
+            return Result.error(CodeMsg.MIAOSHA_FAIL);
         }
         String path = miaoshaService.createMiaoshaPath(user, goodsId);
         return Result.success(path);
@@ -147,12 +157,21 @@ public class MiaoshaController implements InitializingBean {
 
     @RequestMapping(value = "/verifyCode", method = RequestMethod.GET)
     @ResponseBody
-    public Result<String> getMiaoshaVerifyCode(MiaoshaUser user,
-                               @RequestParam("goodsId") long goodsId) {
+    public Result<String> getMiaoshaVerifyCode(HttpServletResponse response,
+            MiaoshaUser user, @RequestParam("goodsId") long goodsId) {
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
         }
-        BufferedImage path = miaoshaService.createVerifyCode(user, goodsId);
-        return null;
+        BufferedImage image = miaoshaService.createVerifyCode(user, goodsId);
+        try {
+            ServletOutputStream outputStream = response.getOutputStream();
+            ImageIO.write(image, "JPEG", outputStream);
+            outputStream.flush();
+            outputStream.close();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Result.error(CodeMsg.MIAOSHA_FAIL);
+        }
     }
 }

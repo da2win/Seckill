@@ -27,6 +27,7 @@ public class CodeMsg {
     // 秒杀模块 5005XX
     public static CodeMsg MIAOSHA_OVER = new CodeMsg(500500, "The goods have been sold out");
     public static CodeMsg REPEAT_MIAOSHA = new CodeMsg(500501, "Don't repeat the SECKILL");
+    public static CodeMsg MIAOSHA_FAIL = new CodeMsg(500501, "The seckill has failed.");
 
     private CodeMsg(int code, String msg) {
         this.code = code;

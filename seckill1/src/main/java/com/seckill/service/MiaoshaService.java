@@ -114,7 +114,7 @@ public class MiaoshaService {
         return image;
     }
 
-    private int calc(String exp) {
+    private static int calc(String exp) {
         try {
             ScriptEngineManager manager = new ScriptEngineManager();
             ScriptEngine engine = manager.getEngineByName("JavaScript");
@@ -143,5 +143,21 @@ public class MiaoshaService {
         char op2 = ops[rdm.nextInt(3)];
         String exp = "" + num1 + op1 + num2 + op2 + num3;
         return exp;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(calc("5+7"));
+    }
+
+    public boolean checkVerifyCode(MiaoshaUser user, long goodsId, int verifyCode) {
+        if (user == null || goodsId <= 0) {
+            return false;
+        }
+        Integer codeOld = redisService.get(MiaoshaKey.getMiaoshaVerifyCode, user.getId() + "," + goodsId, Integer.class);
+        if (codeOld == null || codeOld - verifyCode != 0) {
+            return false;
+        }
+        redisService.del(MiaoshaKey.getMiaoshaVerifyCode, user.getId() + "," + goodsId);
+        return true;
     }
 }
